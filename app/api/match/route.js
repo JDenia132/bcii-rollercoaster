@@ -7,7 +7,7 @@ const methodList = METHODS.map(
   (m) => `${m.id} | ${m.name} | ${m.phases.join(",")} | ${m.when}`
 ).join("\n");
 
-const SYSTEM = `You help UTS BCII students who are stuck on a group design project. Projects follow the double diamond, which this tool presents as a rollercoaster:
+const SYSTEM = `You help UTS BCII students who are stuck on a group design project. Projects follow the Double Diamond, which this tool presents as a rollercoaster:
 - Discover = the climb (diverge: understand the problem, system and people)
 - Define = the first drop (converge: turn research into one clear challenge)
 - Develop = the loops (diverge: generate and build ideas)
@@ -20,12 +20,26 @@ Students often default to methods they already know. Prefer at least one method 
 Pick exactly 3 methods from this list (use the id exactly):
 ${methodList}
 
-Reply with ONLY a JSON object, no markdown, in this shape:
-{"phase":"discover|define|develop|deliver","stepBack":true|false,"diagnosis":"2 to 3 plain sentences on what is really going on and where they are on the ride","picks":[{"id":"method-id","why":"1 to 2 sentences on why this fits their situation","firstStep":"one concrete thing to do in the next hour"}]}
+Students skim, so keep every field SHORT. Reply with ONLY a JSON object, no markdown, in this shape:
+{"phase":"discover|define|develop|deliver","stepBack":true|false,"diagnosis":"one sentence, max 20 words, on what is really going on","picks":[{"id":"method-id","why":"max 12 words","firstStep":"max 12 words, starting with a verb"}]}
+Order the 3 picks as a route: the first is what to do now, the third is where it leads.
 
 Write in plain Australian English, warm and direct. Never use em dashes.`;
 
 export async function POST(req) {
+  // Local preview only: set MOCK_AI=1 to see the result screen without an API key.
+  if (process.env.MOCK_AI === "1") {
+    return Response.json({
+      phase: "define",
+      stepBack: true,
+      diagnosis: "You're ideating before agreeing on the problem, so every idea feels like an argument.",
+      picks: [
+        { id: "sensemaking", why: "Gets everyone's research onto one wall first.", firstStep: "Each person shares their top three findings, no debate." },
+        { id: "problem-statement", why: "One sentence the whole team signs off on.", firstStep: "Everyone writes a draft statement alone in five minutes." },
+        { id: "hmw", why: "Turns the agreed problem into questions you can ideate on.", firstStep: "Rewrite your statement as five How Might We questions." },
+      ],
+    });
+  }
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json(
       { error: "The assistant isn't set up yet (missing API key on the server)." },
